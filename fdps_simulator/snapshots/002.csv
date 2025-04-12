@@ -1,0 +1,4 @@
+callsign,x,y,fl,status
+AF1234,140,220,FL370,conflict
+DLH567,-190,140,FL380,en route
+RYR432,90,-200,FL290,en route
