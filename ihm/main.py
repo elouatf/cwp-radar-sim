@@ -1,6 +1,9 @@
 import sys
 import math
 import csv
+import socket
+import threading
+import json
 from PySide6.QtWidgets import QApplication, QWidget
 from PySide6.QtGui import QPainter, QColor, QPen
 from PySide6.QtCore import Qt, QTimer
@@ -11,7 +14,8 @@ class RadarWidget(QWidget):
         self.setWindowTitle("CWP Radar Display")
         self.setGeometry(100, 100, 800, 800)  # Can be full screen if needed
         self.setStyleSheet("background-color: black;")
-        self.aircraft = self.load_aircraft_data("fdps_data/flights.csv")
+        self.aircraft = []  # Starts empty
+        self.start_socket_client()
 
 
     def paintEvent(self, event):
@@ -49,14 +53,6 @@ class RadarWidget(QWidget):
         # Draw cross lines
         painter.drawLine(cx, 0, cx, self.height())  # vertical
         painter.drawLine(0, cy, self.width(), cy)  # horizontal
-
-        # # Optional: angle lines (like 45°)
-        # painter.save()
-        # for angle in range(0, 360, 30):
-        #     painter.rotate(angle)
-        #     painter.drawLine(cx, cy, cx, cy - 400)
-        #     painter.resetTransform()
-        # painter.restore()
         
         # Draw angle lines (every 30°, like compass spokes)
         label_radius = max_radius + 20  # Put the label slightly outside the last ring
@@ -93,22 +89,34 @@ class RadarWidget(QWidget):
             label = f"{ac['callsign']} {ac['fl']}"
             painter.drawText(ax + 8, ay - 8, label)
 
-    def load_aircraft_data(self, filepath):
-        aircraft_list = []
-        try:
-            with open(filepath, newline='') as csvfile:
-                reader = csv.DictReader(csvfile)
-                for row in reader:
-                    aircraft_list.append({
-                        'callsign': row['callsign'],
-                        'x': int(row['x']),
-                        'y': int(row['y']),
-                        'fl': row['fl'],
-                        'status': row['status']
-                    })
-        except FileNotFoundError:
-            print(f"[WARNING] File not found: {filepath}")
-        return aircraft_list
+    def start_socket_client(self):
+        def listen():
+            try:
+                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                    s.connect(('127.0.0.1', 5000))
+                    buffer = b''
+                    while True:
+                        data = s.recv(4096)
+                        if not data:
+                            break
+                        buffer += data
+
+                        # Handle full JSON message (newline-delimited)
+                        while b'\n' in buffer:
+                            line, buffer = buffer.split(b'\n', 1)
+                            try:
+                                snapshot = json.loads(line.decode('utf-8'))
+                                self.aircraft = snapshot
+                                self.update()
+                            except json.JSONDecodeError as e:
+                                print(f"[Radar] JSON decode error: {e}")
+
+            except ConnectionRefusedError:
+                print("[Radar] Could not connect to FDPS simulator (localhost:5000)")
+
+        # Run the socket client in a separate thread
+        thread = threading.Thread(target=listen, daemon=True)
+        thread.start()
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
