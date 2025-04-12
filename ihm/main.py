@@ -1,4 +1,5 @@
 import sys
+import math
 from PySide6.QtWidgets import QApplication, QWidget
 from PySide6.QtGui import QPainter, QColor, QPen
 from PySide6.QtCore import Qt, QTimer
@@ -24,6 +25,8 @@ class RadarWidget(QWidget):
         pen = QPen(radar_color)
         pen.setWidth(1)
         painter.setPen(pen)
+        painter.setBrush(Qt.NoBrush)
+        painter.setFont(self.font())  # Use default font
 
         # Draw concentric circles
         max_radius = min(self.width(), self.height()) // 2
@@ -31,12 +34,14 @@ class RadarWidget(QWidget):
         num_circles = max_radius // radius_step
 
         for i in range(1, num_circles + 1):
-            painter.drawEllipse(
-                cx - i * radius_step,
-                cy - i * radius_step,
-                2 * i * radius_step,
-                2 * i * radius_step
-            )
+            r = i * radius_step
+            painter.drawEllipse(cx - r, cy - r, 2 * r,2 * r)
+            # Draw a range label (e.g., "20 NM") on the right side of the circle
+            label = f"{i * 20} NM"  # Assuming each ring = 20 NM
+            text_rect = painter.boundingRect(0, 0, 100, 20, Qt.AlignLeft, label)
+            text_x = cx + r + 5
+            text_y = cy - text_rect.height() // 2
+            painter.drawText(text_x, text_y, label)
 
         # Draw cross lines
         painter.drawLine(cx, 0, cx, self.height())  # vertical
@@ -49,6 +54,22 @@ class RadarWidget(QWidget):
         #     painter.drawLine(cx, cy, cx, cy - 400)
         #     painter.resetTransform()
         # painter.restore()
+        
+        # Draw angle lines (every 30°, like compass spokes)
+        label_radius = max_radius + 20  # Put the label slightly outside the last ring
+
+        for angle in range(0, 360, 30):
+            radians = math.radians(angle)
+            label = f"{angle}°"
+
+            text_x = cx + math.cos(radians) * label_radius
+            text_y = cy - math.sin(radians) * label_radius
+
+            text_rect = painter.boundingRect(0, 0, 50, 20, Qt.AlignCenter, label)
+            text_x -= text_rect.width() // 2
+            text_y += text_rect.height() // 2
+
+            painter.drawText(int(text_x), int(text_y), label)
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
