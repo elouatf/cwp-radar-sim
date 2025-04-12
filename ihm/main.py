@@ -80,7 +80,13 @@ class RadarWidget(QWidget):
             ay = cy - ac['y']  # y-axis reversed (Qt origin is top-left)
 
             # Dot representing the aircraft
-            painter.setBrush(QColor(0, 255, 0))  # Green dot
+            # Set color depending on aircraft status
+            if ac['status'].lower() == 'conflict':
+                dot_color = QColor(255, 0, 0)  # Red
+            else:
+                dot_color = QColor(0, 255, 0)  # Green
+            painter.setBrush(dot_color)
+            painter.setPen(QPen(dot_color))  # Optional: match dot and label color
             painter.drawEllipse(ax - 3, ay - 3, 6, 6)
 
             # Label: callsign + FL
