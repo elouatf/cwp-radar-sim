@@ -1,5 +1,6 @@
 import sys
 import math
+import csv
 from PySide6.QtWidgets import QApplication, QWidget
 from PySide6.QtGui import QPainter, QColor, QPen
 from PySide6.QtCore import Qt, QTimer
@@ -10,6 +11,8 @@ class RadarWidget(QWidget):
         self.setWindowTitle("CWP Radar Display")
         self.setGeometry(100, 100, 800, 800)  # Can be full screen if needed
         self.setStyleSheet("background-color: black;")
+        self.aircraft = self.load_aircraft_data("fdps_data/flights.csv")
+
 
     def paintEvent(self, event):
         painter = QPainter(self)
@@ -70,6 +73,36 @@ class RadarWidget(QWidget):
             text_y += text_rect.height() // 2
 
             painter.drawText(int(text_x), int(text_y), label)
+        
+        # Draw aircraft on top of radar
+        for ac in self.aircraft:
+            ax = cx + ac['x']
+            ay = cy - ac['y']  # y-axis reversed (Qt origin is top-left)
+
+            # Dot representing the aircraft
+            painter.setBrush(QColor(0, 255, 0))  # Green dot
+            painter.drawEllipse(ax - 3, ay - 3, 6, 6)
+
+            # Label: callsign + FL
+            label = f"{ac['callsign']} {ac['fl']}"
+            painter.drawText(ax + 8, ay - 8, label)
+
+    def load_aircraft_data(self, filepath):
+        aircraft_list = []
+        try:
+            with open(filepath, newline='') as csvfile:
+                reader = csv.DictReader(csvfile)
+                for row in reader:
+                    aircraft_list.append({
+                        'callsign': row['callsign'],
+                        'x': int(row['x']),
+                        'y': int(row['y']),
+                        'fl': row['fl'],
+                        'status': row['status']
+                    })
+        except FileNotFoundError:
+            print(f"[WARNING] File not found: {filepath}")
+        return aircraft_list
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Escape:
