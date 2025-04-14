@@ -3,7 +3,7 @@
 import names
 
 def main():
-    startApplication("radar.sh")
+    startApplication("radar")
     test.log("Radar application launched")
-    waitForObjectExists(":RadarWidget")
-    test.verify(object.exists(":RadarWidget"), "Radar widget is visible")
+    radar = waitForObjectExists(":radarWidget")
+    test.verify(radar is not None, "Radar widget is visible")

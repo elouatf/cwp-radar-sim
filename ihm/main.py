@@ -5,6 +5,7 @@ from ihm.radar_widget import RadarWidget
 def main():
     app = QApplication(sys.argv)
     radar = RadarWidget()
+    radar.setObjectName("radarWidget")
     radar.showFullScreen()
     sys.exit(app.exec())
 
