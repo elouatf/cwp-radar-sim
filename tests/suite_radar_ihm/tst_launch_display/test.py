@@ -5,5 +5,5 @@ import names
 def main():
     startApplication("radar")
     test.log("Radar application launched")
-    radar = waitForObjectExists(":radarWidget")
-    test.verify(radar is not None, "Radar widget is visible")
+    radar_window = waitForObjectExists(":radarWidget")
+    test.verify(radar_window is not None, "Radar widget is visible")
