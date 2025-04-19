@@ -7,6 +7,7 @@ from ihm.socket_client import start_socket_listener
 class RadarWidget(QWidget):
     def __init__(self):
         super().__init__()
+        self.setObjectName("radarWidget")
         self.setWindowTitle("CWP Radar Display")
         self.setGeometry(100, 100, 800, 800)
         self.setStyleSheet("background-color: black;")
