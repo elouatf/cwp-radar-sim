@@ -10,7 +10,7 @@ Window {
     title: "CWP Radar Display"
     color: "black"
 
-    property var aircraftList: []
+    property var aircraftList: aircraftManager.aircraft
 
     property int centerX: width / 2
     property int centerY: height / 2
