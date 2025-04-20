@@ -4,6 +4,7 @@ import QtQuick.Shapes 1.15
 
 Window {
     id: radarWindow
+    objectName: "radarWindow"
     visible: true
     width: 800
     height: 800
@@ -75,11 +76,13 @@ Window {
         model: radarWindow.aircraftList
         delegate: Item {
             id: trackItem
+            objectName: "track_" + modelData.callsign
             x: centerX + modelData.x
             y: centerY - modelData.y
             width: 1; height: 1
 
             Rectangle {
+                objectName: "trackSymbol_" + modelData.callsign
                 width: 6; height: 6
                 color: modelData.status === "conflict" ? "red" : "green"
                 anchors.centerIn: parent
@@ -87,6 +90,7 @@ Window {
             }
 
             Text {
+                objectName: "trackLabel_" + modelData.callsign
                 text: modelData.callsign + " " + modelData.fl
                 color: "white"
                 font.pixelSize: 14

@@ -4,6 +4,7 @@ PYTHON = $(VENV_DIR)/bin/python
 PIP = $(VENV_DIR)/bin/pip
 APP_NAME = radar
 SRC_FILE = ihm/main.py
+ADD_DATA = ihm/RadarView.qml:ihm
 DIST_DIR = dist
 
 .PHONY: all venv install build run clean
@@ -19,9 +20,10 @@ venv:
 install: venv
 	$(PIP) install -r requirements-dev.txt
 
-# Build the standalone app with PyInstaller
+# Build the standalone app with PyInstaller, including QML file
 build: install
-	$(PYTHON) -m PyInstaller --onefile --name $(APP_NAME) $(SRC_FILE)
+	$(PYTHON) -m PyInstaller --onefile --name $(APP_NAME) \
+		--add-data "$(ADD_DATA)" $(SRC_FILE)
 
 # Run the app from the dist folder
 run: build
